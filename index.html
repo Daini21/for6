@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Clicker</title>
+    <style>
+
+        
+html, body {
+    height: 100%; /* Занимает всю высоту экрана */
+    margin: 0; /* Убираем стандартные отступы */
+    padding: 0; /* Убираем стандартные отступы */
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: url("./static/background.jpg") no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh; /* Минимальная высота 100% от высоты экрана */
+    overflow: hidden; /* Отключаем прокрутку */
+}
+
+
+.profile {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Выравнивание по левому краю */
+    margin: 20px;
+    border-bottom: 2px solid #ccc; /* Граница снизу */
+    padding-bottom: 20px; /* Отступ снизу, чтобы не прилипать к границе */
+}
+
+.profile img {
+    border-radius: 50%;
+    width: 50px;
+    margin-right: 10px;
+}
+
+.text-with-background {
+    background-color: #d0d0d0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #000;
+    display: inline-block;
+}
+
+
+
+.main-screen, .cards-screen, .slot-screen {
+    display: none;
+}
+
+.main-screen {
+    display: block;
+}
+
+.screen {
+    padding-bottom: 60px; /* Добавляем отступ снизу, чтобы не перекрывать навигацию */
+}
+
+.header {
+    display: flex;
+    justify-content: space-between; /* Располагает элементы по краям контейнера */
+    align-items: center; /* Выравнивание по вертикали */
+    padding-left: 40px; /* Отступ слева внутри контейнера */
+    padding-right: 20px; /* Отступ справа внутри контейнера */
+}
+
+.balance {
+    background: url('./static/text-background.jpg') no-repeat center center;
+    background-size: cover; /* Или contain, в зависимости от изображения */
+    padding: 10px; /* Отступы для фона */
+    color: #fff; /* Цвет текста */
+    border-radius: 5px; /* Скругление углов, если нужно */
+}
+
+.income {
+    background: url('./static/text-background.jpg') no-repeat center center;
+    background-size: cover; /* Или contain, в зависимости от изображения */
+    padding: 10px; /* Отступы для фона */
+    color: #fff; /* Цвет текста */
+    border-radius: 5px; /* Скругление углов, если нужно */
+}
+
+
+.balance {
+    display: inline-block; /* Сделать так, чтобы фон растягивался на весь блок */
+    justify-content: flex-start; /* Выравнивание по левому краю */
+    background: url('./static/text-background.jpg') no-repeat center center;
+    background-size: cover; /* Или contain, в зависимости от изображения */
+    padding: 10px; /* Отступы для фона */
+    color: #fff; /* Цвет текста */
+    border-radius: 5px; /* Скругление углов, если нужно */
+}
+
+
+
+.income {
+    margin: 20px;
+    justify-content: flex-end;
+}
+
+.coin {
+    width: 300px;
+    height: 300px;
+    background: url('./static/coin.jpg') no-repeat center center;
+    background-size: contain;
+    cursor: pointer;
+    margin: 20px auto;
+    position: relative; /* Для позиционирования суммы */
+}
+
+
+.tap-value {
+    position: absolute;
+    color: #ffffff; /* Белый цвет текста */
+    font-weight: bold;
+    font-size: 30px; /* Увеличенный размер шрифта */
+    animation: fadeUp 0.5s forwards; /* Анимация появляется и исчезает быстрее */
+    pointer-events: none; /* Чтобы сумма не мешала кликам */
+    transform: translate(-50%, -50%); /* Центрирование относительно точки касания */
+    white-space: nowrap; /* Предотвращает перенос строки */
+}
+
+@keyframes fadeUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-50px); /* Переход вверх на 50px */
+    }
+}
+
+/* Основной контейнер экрана слота */
+.slot-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10; /* Экран будет поверх остальных элементов */
+    overflow: hidden; /* Предотвращает прокрутку */
+}
+
+/* Кнопка для спина */
+.spin-button {
+    background-color: #0088cc; /* Цвет фона кнопки */
+    color: white; /* Цвет текста на кнопке */
+    border: none; /* Убираем границу кнопки */
+    padding: 15px 30px; /* Отступы внутри кнопки */
+    border-radius: 10px; /* Закругленные углы кнопки */
+    cursor: pointer; /* Указатель курсора при наведении */
+    font-size: 18px; /* Размер шрифта */
+    transition: background-color 0.3s ease; /* Плавный переход фона при наведении */
+    margin: 20px; /* Отступы вокруг кнопки */
+}
+
+.spin-button:hover {
+    background-color: #005f8d; /* Темный цвет фона при наведении */
+}
+
+/* Контейнер для символов слота */
+.slot-container {
+    display: flex;
+    gap: 20px; /* Отступы между символами */
+    justify-content: center; /* Центрирование символов по горизонтали */
+}
+
+/* Элемент символа слота */
+.slot-item {
+    width: 100px; /* Ширина символа */
+    height: 100px; /* Высота символа */
+    background-size: cover; /* Подгонка изображения под размеры элемента */
+    background-position: center center; /* Центрирование изображения внутри элемента */
+}
+
+/* Картинка для каждого символа */
+.slot-item-1 {
+    background-image: url('slot-item-1.png'); /* Изображение для символа 1 */
+}
+
+.slot-item-2 {
+    background-image: url('slot-item-2.png'); /* Изображение для символа 2 */
+}
+
+.slot-item-3 {
+    background-image: url('slot-item-3.png'); /* Изображение для символа 3 */
+}
+
+/* Кнопка для возврата на основной экран */
+.slot-back-button {
+    background-color: #ffffff; /* Цвет фона кнопки */
+    color: #000; /* Цвет текста на кнопке */
+    border: none; /* Убираем границу кнопки */
+    padding: 10px 20px; /* Отступы внутри кнопки */
+    border-radius: 5px; /* Закругленные углы кнопки */
+    cursor: pointer; /* Указатель курсора при наведении */
+    font-size: 16px; /* Размер шрифта */
+    transition: background-color 0.3s ease; /* Плавный переход фона при наведении */
+    position: absolute; /* Абсолютное позиционирование для размещения в верхнем левом углу */
+    top: 20px; /* Отступ сверху */
+    left: 20px; /* Отступ слева */
+}
+
+.slot-back-button:hover {
+    background-color: #d0d0d0; /* Цвет фона при наведении */
+}
+
+
+.energy {
+    display: flex; /* Используем flexbox для выравнивания элементов по горизонтали */
+    align-items: center; /* Вертикальное выравнивание по центру */
+    background-color: #d0d0d0; /* Темно-серый фон для блока */
+    padding: 10px; /* Отступы вокруг содержимого */
+    border-radius: 10px; /* Закругленные углы */
+    margin: 20px 0; /* Отступы сверху и снизу */
+    justify-content: space-between; /* Выравнивание элементов по краям */
+}
+
+.label {
+    display: inline-block; /* Позволяет фону растягиваться на размер содержимого */
+    background-color: #d0d0d0; /* Темно-серый фон */
+    padding: 5px 10px; /* Отступы вокруг текста */
+    border-radius: 5px; /* Закругленные углы */
+    color: #000; /* Черный текст */
+}
+
+.energy-container {
+    display: flex; /* Используем flexbox для управления размещением элементов */
+    align-items: center; /* Выравниваем элементы по вертикали по центру */
+    width: 100%; /* Ширина контейнера по ширине родительского элемента */
+    max-width: 300px; /* Максимальная ширина контейнера */
+    margin: 100px auto; /* Центрирование контейнера по горизонтали и добавление отступа сверху */
+    background-color: #e0e0e0; /* Фон контейнера, такой же, как у полоски энергии */
+    padding: 10px; /* Отступы внутри контейнера */
+    border-radius: 10px; /* Закругленные углы контейнера */
+    justify-content: space-between; /* Размещаем элементы по краям контейнера */
+}
+
+.energy-info {
+    margin-right: 10px; /* Отступ между информацией об энергии и полоской энергии */
+    text-align: center; /* Центрирование текста */
+}
+
+.boost-button {
+    background-color: #ffffff; /* Цвет фона кнопки, такой же как у полоски энергии */
+    color: #000; /* Цвет текста на кнопке */
+    border: none; /* Убираем границу кнопки */
+    padding: 10px 20px; /* Отступы внутри кнопки */
+    border-radius: 5px; /* Закругленные углы кнопки */
+    cursor: pointer; /* Указатель курсора при наведении */
+    font-size: 16px; /* Размер шрифта */
+    transition: background-color 0.3s ease; /* Плавный переход фона при наведении */
+    margin-left: 0; /* Убираем отступ слева, чтобы кнопка была прижата к левому краю */
+}
+
+.boost-button:hover {
+    background-color: #d0d0d0; /* Цвет фона при наведении */
+}
+
+
+/* Экран с карточками */
+.cards-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10; /* Экран будет поверх остальных элементов */
+    overflow: hidden; /* Предотвращает прокрутку */
+}
+
+.card {
+    background: white; /* Фон карточек */
+    border-radius: 10px; /* Закругленные углы карточек */
+    padding: 20px; /* Отступы внутри карточек */
+    width: 160px; /* Ширина карточек */
+    text-align: center; /* Выравнивание текста по центру */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень карточек для придания объема */
+    box-sizing: border-box; /* Учет отступов в общей ширине */
+    margin: 0 auto; /* Центрирование карточек с одинаковыми отступами слева и справа */
+}
+
+
+.card-image {
+    background: url('card-image-placeholder.png') no-repeat center center; /* Фоновое изображение для карточек */
+    background-size: cover; /* Подгонка изображения под размеры карточки */
+    height: 100px; /* Высота изображения */
+    border-radius: 5px; /* Закругленные углы изображения */
+    margin-bottom: 10px; /* Отступ снизу изображения */
+}
+
+.card-info {
+    margin-top: 10px; /* Отступ сверху для информации о карточке */
+}
+
+.card-price,
+.card-income {
+    font-size: 14px; /* Размер шрифта */
+    color: #333; /* Цвет текста */
+    margin: 5px 0; /* Отступы сверху и снизу */
+}
+
+.upgrade-button {
+    background-color: #0088cc; /* Цвет фона кнопки */
+    color: white; /* Цвет текста на кнопке */
+    border: none; /* Убираем границу кнопки */
+    padding: 10px 20px; /* Отступы внутри кнопки */
+    border-radius: 5px; /* Закругленные углы кнопки */
+    cursor: pointer; /* Указатель курсора при наведении */
+    font-size: 16px; /* Размер шрифта */
+    transition: background-color 0.3s ease; /* Плавный переход фона при наведении */
+}
+
+.upgrade-button:hover {
+    background-color: #005f8d; /* Темный цвет фона при наведении */
+}
+
+.card-description {
+    font-size: 16px; /* Размер шрифта описания */
+    color: #333; /* Цвет текста */
+}
+
+/* Исправляем контейнер для карточек */
+.card-container {
+    display: flex; /* Flexbox для горизонтального расположения */
+    flex-wrap: wrap; /* Позволяет карточкам переноситься на следующую строку */
+    gap: 20px; /* Отступ между карточками */
+    justify-content: center; /* Центрирование карточек по горизонтали */
+    margin: 0 auto; /* Центрирование контейнера на странице */
+    max-width: 360px; /* Ограничиваем ширину контейнера, чтобы помещались 2 карточки */
+}
+
+.tap-value {
+    position: absolute;
+    font-size: 20px;
+    font-weight: bold;
+    pointer-events: none;
+    transition: opacity 0.5s ease-out;
+    opacity: 0;
+}
+
+.tap-value {
+    opacity: 1;
+}
+
+/* Стиль для навигационного меню */
+.nav {
+    display: flex;
+    justify-content: space-around;
+    background-color: #e0e0e0;
+    padding: 5px; /* Уменьшаем отступы */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    box-sizing: border-box;
+    border-top: 2px solid #ccc;
+    z-index: 1000;
+    border-radius: 10px 10px 0 0;
+    height: 80px; /* Уменьшить высоту навигации */
+}
+
+/* Стиль для кнопок в меню */
+.nav button {
+    background-color: #ffffff;
+    color: #000;
+    border: none;
+    padding: 5px 5px; /* Уменьшенные отступы для кнопок */
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px; /* Уменьшенный шрифт для текста и эмодзи */
+    display: flex;
+    flex: 1; /* Все кнопки занимают одинаковое пространство */
+    margin: 0 3px; /* Увеличенный отступ между кнопками */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Эмодзи и текст отдельно */
+.nav button .emoji {
+    font-size: 20px; /* Размер эмодзи */
+}
+
+.nav button .label {
+    font-size: 10px; /* Размер текста */
+    margin-top: 3px; /* Отступ между эмодзи и текстом */
+}
+
+/* Изменение размера кнопок на мобильных устройствах */
+@media screen and (max-width: 480px) {
+    .nav {
+        height: 70px; /* Еще меньшее меню для мобильных экранов */
+    }
+    
+    .nav button {
+        font-size: 14px; /* Еще меньше размер текста */
+    }
+    
+    .nav button .emoji {
+        font-size: 18px; /* Меньше эмодзи */
+    }
+    
+    .nav button .label {
+        font-size: 8px; /* Еще меньше текст */
+    }
+}
+
+
+
+/* Стиль для кнопки при нажатии */
+.nav button:active {
+    background-color: #b0b0b0; /* Цвет фона при нажатии */
+}
+
+
+    </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+    <!-- Основной экран -->
+    <div class="main-screen screen">
+        <div class="profile">
+            <img src="https://via.placeholder.com/50" alt="Profile Pic" id="profile-pic">
+            <span id="username" class="text-with-background">Username</span>
+        </div>
+
+        <div class="header">
+            <div class="balance" style="display: inline-block; background-color: #d0d0d0; padding: 10px; color: #000; border-radius: 10px;">
+            Баланс: <span id="coins">0</span>
+            </div>
+            <div class="income" style="display: inline-block; background-color: #d0d0d0; padding: 10px; color: #000; border-radius: 10px;">
+                Доход в час: <span id="income">0</span>
+            </div>
+        </div>
+
+        <div class="coin" id="coin"></div>
+
+        <div class="energy-container">
+            <div class="energy-info">
+                <div class="label">🔋 Энергия <span id="energy-value">100</span></div>
+            </div>
+            <button id="boost" class="boost-button">🚀 Буст</button>
+        </div>
+
+        <div class="nav">
+            <button data-target="main-screen">
+                <span class="emoji">🏠</span>
+                <span class="label">Главная</span>
+            </button>
+            <button data-target="cards-screen">
+                <span class="emoji">🃏</span>
+                <span class="label">Карточки</span>
+            </button>
+            <button data-target="slot-screen">
+                <span class="emoji">🔄</span>
+                <span class="label">Слот</span>
+            </button>
+            <button data-target="tasks-screen">
+                <span class="emoji">📝</span>
+                <span class="label">Задачи</span>
+            </button>
+            <button data-target="friends-screen">
+                <span class="emoji">👫</span>
+                <span class="label">Друзья</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Экран карточек -->
+    <div class="cards-screen screen" style="display: none;">
+        <div class="header">
+            <div class="balance" style="display: inline-block; background-color: #d0d0d0; padding: 10px; color: #000; border-radius: 10px;">
+                Баланс: <span id="coins">0</span> монет
+            </div>
+            <div class="income" style="display: inline-block; background-color: #d0d0d0; padding: 10px; color: #000; border-radius: 10px;">
+                Доход в час: <span id="income">0</span>
+            </div>
+        </div>
+
+        <div class="card-container">
+    <div class="card" data-card="1">
+        <h3>Карточка 1</h3>
+        <p class="card-description">Описание карточки.</p>
+        <p class="card-price">Цена: 200 монет</p>
+        <p class="card-income">Доход в час: 500 монет</p>
+        <button class="upgrade-button" data-card="1">Прокачать</button>
+    </div>
+    <div class="card" data-card="2">
+        <h3>Карточка 2</h3>
+        <p class="card-description">Описание карточки.</p>
+        <p class="card-price">Цена: 300 монет</p>
+        <p class="card-income">Доход в час: 750 монет</p>
+        <button class="upgrade-button" data-card="2">Прокачать</button> 
+    </div>
+    <!-- Добавьте больше карточек при необходимости -->
+</div>
+
+
+        <div class="nav">
+            <button data-target="main-screen">
+                <span class="emoji">🏠</span>
+                <span class="label">Главная</span>
+            </button>
+            <button data-target="cards-screen">
+                <span class="emoji">🃏</span>
+                <span class="label">Карточки</span>
+            </button>
+            <button data-target="slot-screen">
+                <span class="emoji">🔄</span>
+                <span class="label">Слот</span>
+            </button>
+            <button data-target="tasks-screen">
+                <span class="emoji">📝</span>
+                <span class="label">Задачи</span>
+            </button>
+            <button data-target="friends-screen">
+                <span class="emoji">👫</span>
+                <span class="label">Друзья</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Экран слота -->
+    <div class="slot-screen screen" style="display: none;">
+        <div class="slot-machine">
+            <div class="slot-row">
+                <div class="slot-item">7</div>
+                <div class="slot-item">7</div>
+                <div class="slot-item">7</div>
+            </div>
+        </div>
+        <button id="spinButton">Крутить за монетки</button>
+
+        <div class="nav">
+            <button data-target="main-screen">
+                <span class="emoji">🏠</span>
+                <span class="label">Главная</span>
+            </button>
+            <button data-target="cards-screen">
+                <span class="emoji">🃏</span>
+                <span class="label">Карточки</span>
+            </button>
+            <button data-target="slot-screen">
+                <span class="emoji">🔄</span>
+                <span class="label">Слот</span>
+            </button>
+            <button data-target="tasks-screen">
+                <span class="emoji">📝</span>
+                <span class="label">Задачи</span>
+            </button>
+            <button data-target="friends-screen">
+                <span class="emoji">👫</span>
+                <span class="label">Друзья</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Экран задач -->
+    <div class="tasks-screen screen" style="display: none;">
+        <!-- Контент для экрана задач -->
+
+        <div class="nav">
+            <button data-target="main-screen">
+                <span class="emoji">🏠</span>
+                <span class="label">Главная</span>
+            </button>
+            <button data-target="cards-screen">
+                <span class="emoji">🃏</span>
+                <span class="label">Карточки</span>
+            </button>
+            <button data-target="slot-screen">
+                <span class="emoji">🔄</span>
+                <span class="label">Слот</span>
+            </button>
+            <button data-target="tasks-screen">
+                <span class="emoji">📝</span>
+                <span class="label">Задачи</span>
+            </button>
+            <button data-target="friends-screen">
+                <span class="emoji">👫</span>
+                <span class="label">Друзья</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Экран друзей -->
+    <div class="friends-screen screen" style="display: none;">
+        <!-- Контент для экрана друзей -->
+
+        <div class="nav">
+            <button data-target="main-screen">
+                <span class="emoji">🏠</span>
+                <span class="label">Главная</span>
+            </button>
+            <button data-target="cards-screen">
+                <span class="emoji">🃏</span>
+                <span class="label">Карточки</span>
+            </button>
+            <button data-target="slot-screen">
+                <span class="emoji">🔄</span>
+                <span class="label">Слот</span>
+            </button>
+            <button data-target="tasks-screen">
+                <span class="emoji">📝</span>
+                <span class="label">Задачи</span>
+            </button>
+            <button data-target="friends-screen">
+                <span class="emoji">👫</span>
+                <span class="label">Друзья</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+
+const tg = window.Telegram.WebApp;
+
+let energy = 100;
+const maxEnergy = 100;
+const energyRegenAmount = 6;
+const energyRegenInterval = 3000;
+let isTouching = false;
+let lastUpdate = Date.now();
+let tapAmount = 1; // Значение дохода за свайп
+
+// Обновление интерфейса энергии
+function updateEnergy() {
+    document.getElementById('energy-value').innerText = `${energy}/${maxEnergy}`;
+}
+
+// Создание и позиционирование анимации "+1" или большего значения
+function createTapValue(x, y) {
+    const tapValue = document.createElement('div');
+    tapValue.classList.add('tap-value');
+    tapValue.innerText = `+${tapAmount}`;
+    tapValue.style.left = x + 'px';
+    tapValue.style.top = y + 'px';
+    tapValue.style.color = 'white'; // Белый цвет текста
+    document.body.appendChild(tapValue);
+
+    setTimeout(() => tapValue.remove(), 500); // Удаление анимации через 0.5 секунд
+}
+
+// Логика управления монеткой по жесту
+function handleCoinGesture(event) {
+    if (energy > 0) {
+        let currentTime = Date.now();
+        if (currentTime - lastUpdate >= 100) { // Проверка интервала 0.1 секунды
+            let coins = parseInt(document.getElementById('coins').innerText);
+            coins += tapAmount; // Увеличиваем количество монет в соответствии с tapAmount
+            document.getElementById('coins').innerText = coins;
+
+            // Показ анимации на месте касания
+            const rect = event.target.getBoundingClientRect();
+            createTapValue(event.clientX - rect.left, event.clientY - rect.top);
+
+            // Уменьшение энергии на 1
+            energy -= 1;
+            updateEnergy();
+
+            lastUpdate = currentTime; // Обновляем время последнего обновления
+        }
+    }
+}
+
+// Обработка жеста касания для монетки
+function setupGesture() {
+    const coinElement = document.getElementById('coin');
+    
+    coinElement.addEventListener('mousedown', () => isTouching = true);
+    coinElement.addEventListener('mouseup', () => isTouching = false);
+    coinElement.addEventListener('mouseleave', () => isTouching = false);
+    coinElement.addEventListener('mousemove', (event) => {
+        if (isTouching) {
+            handleCoinGesture(event);
+        }
+    });
+
+    coinElement.addEventListener('touchstart', (event) => {
+        isTouching = true;
+        handleCoinGesture(event.touches[0]);
+    });
+
+    coinElement.addEventListener('touchend', () => isTouching = false);
+    coinElement.addEventListener('touchmove', (event) => {
+        if (isTouching) {
+            handleCoinGesture(event.touches[0]);
+        }
+    });
+}
+
+// Восстановление энергии
+setInterval(() => {
+    if (energy < maxEnergy) {
+        energy = Math.min(energy + energyRegenAmount, maxEnergy);
+        updateEnergy();
+    }
+}, energyRegenInterval);
+
+// Инициализация интерфейса
+updateEnergy();
+
+// Инициализация обработки жестов
+setupGesture();
+
+// Информация о карточках
+const cards = [
+    { id: 1, price: 200, incomePerHour: 500, incomePerSecond: 500 / 3600 },
+    { id: 2, price: 300, incomePerHour: 750, incomePerSecond: 750 / 3600 }
+    // Добавьте больше карточек при необходимости
+];
+
+// Обновление информации о карточках
+function updateCardInfo() {
+    cards.forEach(card => {
+        const cardElement = document.querySelector(`.card[data-card="${card.id}"]`);
+        if (cardElement) {
+            cardElement.querySelector('.card-price').innerText = `Цена: ${card.price} монет`;
+            cardElement.querySelector('.card-income').innerText = `Доход в час: ${card.incomePerHour} монет`;
+        }
+    });
+}
+
+// Обработка прокачки карточек
+function setUpUpgradeButtons() {
+    document.querySelectorAll('.upgrade-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const cardId = parseInt(button.getAttribute('data-card'));
+            const card = cards.find(c => c.id === cardId);
+            const coins = parseInt(document.getElementById('coins').innerText);
+
+            if (coins >= card.price) {
+                // Уменьшение баланса
+                document.getElementById('coins').innerText = coins - card.price;
+
+                // Увеличение дохода и цены
+                card.price = Math.round(card.price * 1.5);
+                card.incomePerHour *= 1.5;
+                card.incomePerSecond = card.incomePerHour / 3600;
+
+                // Обновление информации
+                updateCardInfo();
+            } else {
+                alert('Недостаточно монет!');
+            }
+        });
+    });
+}
+
+// Обновление баланса каждые 2 секунды на основе дохода от карточек
+setInterval(() => {
+    const totalIncomePerSecond = cards.reduce((total, card) => total + card.incomePerSecond, 0);
+    let coins = parseInt(document.getElementById('coins').innerText);
+    coins += totalIncomePerSecond * 2; // Обновляем баланс каждые 2 секунды
+    document.getElementById('coins').innerText = Math.round(coins);
+}, 2000);
+
+// Функция для обновления информации о балансе и доходе на экране карточек
+function updateBottomInfo() {
+    const coins = document.getElementById('coins').innerText;
+    const income = cards.reduce((total, card) => total + card.incomePerHour, 0);
+
+    document.getElementById('cards-coins').innerText = coins;
+    document.getElementById('cards-income').innerText = income;
+}
+
+function switchScreen(targetScreenId) {
+    // Скрываем все экраны
+    document.querySelectorAll('.screen').forEach(screen => {
+        if (screen.classList.contains(targetScreenId)) {
+            screen.style.display = 'block'; // Отображаем выбранный экран
+        } else {
+            screen.style.display = 'none'; // Скрываем остальные
+        }
+    });
+    // Навигационная панель всегда остаётся видимой
+    document.querySelector('.nav').style.display = 'flex';
+}
+
+// Обработчики кнопок навигации
+document.querySelectorAll('.nav button').forEach(button => {
+    button.addEventListener('click', function() {
+        const targetScreen = button.getAttribute('data-target');
+        switchScreen(targetScreen);
+    });
+});
+
+// Инициализация после загрузки документа
+document.addEventListener("DOMContentLoaded", function() {
+    // Установка начального экрана
+    switchScreen('main-screen');
+
+    // Обработчик событий для кнопок "Прокачать"
+    setUpUpgradeButtons();
+    
+});
+
+document.getElementById("profile-pic").src = "https://via.placeholder.com/100";
+document.getElementById("username").innerText = "Test User";
+
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        const user = window.Telegram.WebApp.initDataUnsafe?.user;
+        if (user) {
+            // Проверяем наличие фото профиля и отображаем его
+            if (user.photo_url) {
+                document.getElementById("profile-pic").src = user.photo_url;
+            } else {
+                document.getElementById("profile-pic").src = "https://via.placeholder.com/50";
+            }
+            // Устанавливаем имя пользователя
+            document.getElementById("username").innerText = user.username || user.first_name;
+        }
+    } else {
+        console.error("Telegram WebApp is not available.");
+    }
+});
+
+
+// Логика слота
+const slotItems = ['🍒', '🍋', '🍊', '🍉', '🍇', '🍓']; // Возможные символы слота
+
+function getRandomSlotItem() {
+    return slotItems[Math.floor(Math.random() * slotItems.length)];
+}
+
+function spinSlot() {
+    const slotRows = document.querySelectorAll('.slot-row');
+    slotRows.forEach(row => {
+        row.querySelectorAll('.slot-item').forEach(item => {
+            item.innerText = getRandomSlotItem();
+        });
+    });
+
+    setTimeout(() => {
+        checkSlotResults();
+    }, 1000); // Проверяем результаты через 1 секунду
+}
+
+function checkSlotResults() {
+    const rows = Array.from(document.querySelectorAll('.slot-row'));
+    const results = rows.map(row => Array.from(row.querySelectorAll('.slot-item')).map(item => item.innerText));
+    const uniqueResults = [...new Set(results.flat())];
+
+    if (uniqueResults.length === 1) {
+        alert('Congratulations! You won!');
+        let coins = parseInt(document.getElementById('coins').innerText);
+        coins += 100; // Увеличиваем количество монет за выигрыш
+        document.getElementById('coins').innerText = coins;
+    } else {
+        alert('Try again!');
+    }
+}
+
+
+    </script>
+</body>
+</html>
